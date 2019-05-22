@@ -66,6 +66,20 @@ class Engine {
     }
 
     /**
+     * Generate Text for a clause
+     * @param {Clause} clause  - the clause to execute
+     * @param {string} currentTime - the definition of 'now'
+     * @return {Promise} a promise that resolves to a result for the clause initialization
+     */
+    async generateText(clause, currentTime) {
+        const templateLogic = clause.getTemplateLogic();
+        const clauseId = clause.getIdentifier();
+        const contract = clause.getData();
+
+        return this.ergoEngine.generateText(templateLogic,clauseId,contract,currentTime);
+    }
+
+    /**
      * Provides access to the underlying Ergo engine.
      * @return {ErgoEngine} the Ergo Engine for this Engine
      */

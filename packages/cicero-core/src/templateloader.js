@@ -306,6 +306,13 @@ class TemplateLoader {
         await template.getModelManager().updateExternalModels();
         Logger.debug(method, 'Added model files', modelFiles.length);
 
+
+        // load and add the template
+        let template_txt = await TemplateLoader.loadFileContents(path, 'grammar/template.tem', false, true);
+        template.getTemplateLogic().addTemplateFile(template_txt,'grammar/template.tem');
+        template.parserManager.buildGrammar(template_txt);
+        Logger.debug(method, 'Loaded template.tem', template_txt);
+
         // load and add the ergo files
         if(template.getMetadata().getErgoVersion()) {
             const ergoFiles = await TemplateLoader.loadFilesContents(path, /lib\/.*\.ergo$/);
@@ -331,9 +338,6 @@ class TemplateLoader {
         // check the template
         template.validate();
 
-        let template_txt = await TemplateLoader.loadFileContents(path, 'grammar/template.tem', false, true);
-        template.parserManager.buildGrammar(template_txt);
-        Logger.debug(method, 'Loaded template.tem', template_txt);
         return template;
     }
 }

@@ -78,7 +78,7 @@ require('yargs')
             argv = Commands.validateGenerateTextArgs(argv);
             return Commands.generateText(argv.template, argv.data, argv.out)
                 .then((result) => {
-                    Logger.info(result);
+                    Logger.info(result.response);
                 })
                 .catch((err) => {
                     Logger.error(err.message);

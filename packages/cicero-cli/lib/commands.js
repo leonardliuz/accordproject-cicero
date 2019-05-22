@@ -171,6 +171,7 @@ class Commands {
         let clause;
         const dataJson = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
 
+        const engine = new Engine();
         return Commands.loadTemplate(templatePath)
             .then((template) => {
                 clause = new Clause(template);
@@ -179,7 +180,8 @@ class Commands {
                     Logger.info('Creating file: ' + outPath);
                     fs.writeFileSync(outPath, clause.generateText());
                 }
-                return clause.generateText();
+                return engine.generateText(clause, null);
+                //return clause.generateText();
             })
             .catch((err) => {
                 Logger.error(err.message);
