@@ -69,6 +69,16 @@ require('yargs')
             describe: 'path to the output file',
             type: 'string'
         });
+        yargs.option('wrapVariables', {
+            describe: 'wrap variables in curly braces',
+            type: 'boolean',
+            default: false
+        });
+        yargs.option('template', {
+            describe: 'path to the template (.tem) file',
+            type: 'string',
+            default: null
+        });
     }, (argv) => {
         if (argv.verbose) {
             Logger.info(`generate text from data ${argv.data} using a template ${argv.template}`);
@@ -76,9 +86,13 @@ require('yargs')
 
         try {
             argv = Commands.validateGenerateTextArgs(argv);
-            return Commands.generateText(argv.template, argv.data, argv.out)
+            const options = {
+              markdown: argv.markdown,
+              wrapVariables: argv.wrapVariables,
+            };
+            return Commands.generateText(argv.template, argv.data, argv.out, options)
                 .then((result) => {
-                    Logger.info(result.response);
+                    Logger.info(result);
                 })
                 .catch((err) => {
                     Logger.error(err.message);

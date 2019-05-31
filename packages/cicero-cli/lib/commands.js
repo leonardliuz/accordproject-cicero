@@ -167,11 +167,10 @@ class Commands {
      * @param {string} outPath to the contract file
      * @returns {object} Promise to the result of parsing
      */
-    static generateText(templatePath, dataPath, outPath) {
+    static generateText(templatePath, dataPath, outPath, options) {
         let clause;
         const dataJson = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
 
-        const engine = new Engine();
         return Commands.loadTemplate(templatePath)
             .then((template) => {
                 clause = new Clause(template);
@@ -180,8 +179,7 @@ class Commands {
                     Logger.info('Creating file: ' + outPath);
                     fs.writeFileSync(outPath, clause.generateText());
                 }
-                return engine.generateText(clause, null);
-                //return clause.generateText();
+                return clause.generateText(options);
             })
             .catch((err) => {
                 Logger.error(err.message);

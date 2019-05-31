@@ -20,6 +20,7 @@ const Util = require('@accordproject/ergo-compiler').Util;
 const moment = require('moment-mini');
 // Make sure Moment serialization preserves utcOffset. See https://momentjs.com/docs/#/displaying/as-json/
 moment.fn.toJSON = Util.momentToJson;
+const ErgoEngine = require('@accordproject/ergo-engine/index.browser.js').EvalEngine;
 
 const RelationshipDeclaration = require('@accordproject/ergo-compiler').ComposerConcerto.RelationshipDeclaration;
 
@@ -47,6 +48,7 @@ class TemplateInstance {
         this.template = template;
         this.data = null;
         this.composerData = null;
+        this.ergoEngine = new ErgoEngine();
     }
 
     /**
@@ -183,54 +185,26 @@ class TemplateInstance {
      * @returns {string} the natural language text for the clause; created by combining the structure of
      * the template with the JSON data for the clause.
      */
-    generateText(options) {
-        if(!this.composerData) {
+    async generateText(options) {
+        if(!this.data) {
             throw new Error('Data has not been set. Call setData or parse before calling this method.');
         }
 
-        let startVar = '';
-        let endVar = '';
-        if(options && options.wrapVariables) {
-            startVar = '{{';
-            endVar = '}}';
-        }
-
-        const ast = this.getTemplate().getParserManager().getTemplateAst();
-        // console.log('AST: ' + JSON.stringify(ast, null, 4));
-
-        let result = '';
-
-        for(let n=0; n < ast.data.length; n++) {
-            const thing = ast.data[n];
-
-            switch(thing.type) {
-            case 'LastChunk':
-            case 'Chunk':
-                result += thing.value;
-                break;
-
-            case 'BooleanBinding': {
-                const property = this.getTemplate().getTemplateModel().getProperty(thing.fieldName.value);
-                if(this.composerData[property.getName()]) {
-                    result += startVar + thing.string.value.substring(1,thing.string.value.length-1) + endVar;
-                }
+        const params = {
+            options: {
+                '$class': 'org.accordproject.markdown.MarkdownOptions',
+                'markdown': options && options.markdown ? options.markdown : false,
+                'wrapVariables': options && options.wrapVariables ? options.wrapVariables : false,
             }
-                break;
+        };
+        const templateLogic = this.getTemplateLogic();
+        const clauseId = this.getIdentifier();
+        const contract = this.getData();
 
-            case 'FormattedBinding':
-            case 'Binding': {
-                const property = this.getTemplate().getTemplateModel().getProperty(thing.fieldName.value);
-                const value = this.composerData[property.getName()];
-                result += startVar + this.convertPropertyToString(property, value, thing.format ? thing.format.value : null) + endVar;
-            }
-                break;
-
-            default:
-                throw new Error('Unrecognized item: ' + thing.type);
-            }
-        }
-
-        return result;
+        return templateLogic.compileLogic(false).then(async () => {
+            const result = await this.ergoEngine.generateText(templateLogic,clauseId,contract,params,null);
+            return result.response;
+        });
     }
 
     /**

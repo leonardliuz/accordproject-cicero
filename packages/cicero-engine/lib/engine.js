@@ -76,7 +76,14 @@ class Engine {
         const clauseId = clause.getIdentifier();
         const contract = clause.getData();
 
-        return this.ergoEngine.generateText(templateLogic,clauseId,contract,currentTime);
+        const params = {
+            options: {
+                '$class': 'org.accordproject.markdown.MarkdownOptions',
+                'markdown': false,
+                'wrapVariables': false,
+            }
+        };
+        return this.ergoEngine.generateText(templateLogic,clauseId,contract,params,currentTime);
     }
 
     /**
